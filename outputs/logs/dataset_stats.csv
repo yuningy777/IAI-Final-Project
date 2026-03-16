@@ -1,0 +1,7 @@
+class,total_files,valid_files,bad_files
+cardboard,403,403,0
+glass,501,501,0
+metal,410,410,0
+paper,594,594,0
+plastic,482,482,0
+trash,137,137,0

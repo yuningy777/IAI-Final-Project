@@ -1,0 +1,7 @@
+class,train,val,test
+cardboard,282,60,61
+glass,350,75,76
+metal,287,61,62
+paper,415,89,90
+plastic,337,72,73
+trash,95,20,22
