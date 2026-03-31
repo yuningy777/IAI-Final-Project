@@ -7,10 +7,10 @@ from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 
 DATA_DIR = "data/processed"
-MODEL_SAVE_PATH = "outputs/models/resnet18_baseline.pth"
+MODEL_SAVE_PATH = "outputs/models/resnet18_ep15_baseline.pth"
 NUM_CLASSES = 6
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 15
 LR = 1e-3
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

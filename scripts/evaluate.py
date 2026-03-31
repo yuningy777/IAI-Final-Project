@@ -5,7 +5,7 @@ from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 
 DATA_DIR = "data/processed/test"
-MODEL_PATH = "outputs/models/resnet18_baseline.pth"
+MODEL_PATH = "outputs/models/resnet18_ep15_baseline.pth"
 NUM_CLASSES = 6
 BATCH_SIZE = 32
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
