@@ -1,0 +1,5 @@
+class,train,val,test
+paper,697,149,151
+plastic,337,72,73
+glass_metal,637,136,138
+trash,95,20,22

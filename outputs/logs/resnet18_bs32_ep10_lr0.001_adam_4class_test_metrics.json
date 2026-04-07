@@ -1,0 +1,24 @@
+{
+    "experiment_name": "resnet18_bs32_ep10_lr0.001_adam_4class",
+    "batch_size": 32,
+    "num_test_images": 384,
+    "class_names": [
+        "glass_metal",
+        "paper",
+        "plastic",
+        "trash"
+    ],
+    "class_to_idx": {
+        "glass_metal": 0,
+        "paper": 1,
+        "plastic": 2,
+        "trash": 3
+    },
+    "test_accuracy": 0.875,
+    "test_precision_macro": 0.8345714433416047,
+    "test_recall_macro": 0.8104527848526563,
+    "test_f1_macro": 0.8213104544932374,
+    "model_path": "outputs/models/resnet18_bs32_ep10_lr0.001_adam_4class_best.pth",
+    "confusion_matrix_path": "outputs/figures/resnet18_bs32_ep10_lr0.001_adam_4class_confusion_matrix.png",
+    "classification_report_path": "outputs/logs/resnet18_bs32_ep10_lr0.001_adam_4class_classification_report.txt"
+}

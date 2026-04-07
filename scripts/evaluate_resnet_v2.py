@@ -4,34 +4,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 from sklearn.metrics import (
     accuracy_score,
     precision_recall_fscore_support,
     confusion_matrix,
-    classification_report
+    classification_report,
 )
 
+# =========================
 # Configuration
-EXPERIMENT_NAME = "resnet18_bs32_ep10_lr1e-3_adam"
+# =========================
+EXPERIMENT_NAME = "resnet18_bs32_ep10_lr0.001_adam_4class"
 
-DATA_DIR = "data/processed/test"
+DATA_DIR = "data/processed_4class/test"
 MODEL_PATH = f"outputs/models/{EXPERIMENT_NAME}_best.pth"
+
 CONFUSION_MATRIX_FIG = f"outputs/figures/{EXPERIMENT_NAME}_confusion_matrix.png"
 CLASSIFICATION_REPORT_TXT = f"outputs/logs/{EXPERIMENT_NAME}_classification_report.txt"
 METRICS_JSON_PATH = f"outputs/logs/{EXPERIMENT_NAME}_test_metrics.json"
 
-NUM_CLASSES = 6
 BATCH_SIZE = 32
 NUM_WORKERS = 2
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def build_model():
+def build_model(num_classes):
     model = models.resnet18(weights=None)
-    model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+
+    state_dict = torch.load(MODEL_PATH, map_location=DEVICE)
+    model.load_state_dict(state_dict)
+
     model = model.to(DEVICE)
     model.eval()
     return model
@@ -51,7 +57,9 @@ def plot_confusion_matrix(cm, class_names, save_path):
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
             plt.text(
-                j, i, str(cm[i, j]),
+                j,
+                i,
+                str(cm[i, j]),
                 horizontalalignment="center",
                 color="white" if cm[i, j] > threshold else "black"
             )
@@ -59,6 +67,7 @@ def plot_confusion_matrix(cm, class_names, save_path):
     plt.ylabel("True Label")
     plt.xlabel("Predicted Label")
     plt.tight_layout()
+
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.close()
@@ -80,23 +89,41 @@ def main():
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
 
+    if not os.path.exists(DATA_DIR):
+        raise FileNotFoundError(f"Test data directory not found: {DATA_DIR}")
+
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225]),
+        transforms.Normalize(
+            [0.485, 0.456, 0.406],
+            [0.229, 0.224, 0.225]
+        ),
     ])
 
     test_dataset = datasets.ImageFolder(DATA_DIR, transform=transform)
+
+    if len(test_dataset.classes) == 0:
+        raise ValueError("No classes found in test dataset.")
+
+    class_names = test_dataset.classes
+    num_classes = len(class_names)
+
+    print("===== Dataset Info =====")
+    print("Classes:", class_names)
+    print("class_to_idx:", test_dataset.class_to_idx)
+    print("Num classes:", num_classes)
+    print("Num test images:", len(test_dataset))
+
     test_loader = DataLoader(
         test_dataset,
         batch_size=BATCH_SIZE,
         shuffle=False,
-        num_workers=NUM_WORKERS
+        num_workers=NUM_WORKERS,
+        pin_memory=torch.cuda.is_available(),
     )
 
-    class_names = test_dataset.classes
-    model = build_model()
+    model = build_model(num_classes)
 
     all_labels = []
     all_preds = []
@@ -109,12 +136,15 @@ def main():
             outputs = model(images)
             preds = torch.argmax(outputs, dim=1)
 
-            all_labels.extend(labels.cpu().numpy())
-            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy().tolist())
+            all_preds.extend(preds.cpu().numpy().tolist())
 
     test_acc = accuracy_score(all_labels, all_preds)
     test_precision, test_recall, test_f1, _ = precision_recall_fscore_support(
-        all_labels, all_preds, average="macro", zero_division=0
+        all_labels,
+        all_preds,
+        average="macro",
+        zero_division=0
     )
 
     report_text = classification_report(
@@ -124,7 +154,7 @@ def main():
         zero_division=0
     )
 
-    print("===== Test Metrics =====")
+    print("\n===== Test Metrics =====")
     print(f"Experiment: {EXPERIMENT_NAME}")
     print(f"Accuracy:  {test_acc:.4f}")
     print(f"Precision: {test_precision:.4f}")
@@ -136,7 +166,7 @@ def main():
 
     cm = confusion_matrix(all_labels, all_preds)
     plot_confusion_matrix(cm, class_names, CONFUSION_MATRIX_FIG)
-    print(f"\nConfusion matrix saved to: {CONFUSION_MATRIX_FIG}")
+    print(f"Confusion matrix saved to: {CONFUSION_MATRIX_FIG}")
 
     save_classification_report(report_text, CLASSIFICATION_REPORT_TXT)
     print(f"Classification report saved to: {CLASSIFICATION_REPORT_TXT}")
@@ -144,6 +174,9 @@ def main():
     metrics_dict = {
         "experiment_name": EXPERIMENT_NAME,
         "batch_size": BATCH_SIZE,
+        "num_test_images": len(test_dataset),
+        "class_names": class_names,
+        "class_to_idx": test_dataset.class_to_idx,
         "test_accuracy": float(test_acc),
         "test_precision_macro": float(test_precision),
         "test_recall_macro": float(test_recall),

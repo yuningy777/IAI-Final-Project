@@ -1,0 +1,5 @@
+new_class,original_classes,total_files,valid_files,bad_files
+paper,paper+cardboard,997,997,0
+plastic,plastic,482,482,0
+glass_metal,glass+metal,911,911,0
+trash,trash,137,137,0

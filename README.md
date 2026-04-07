@@ -1,18 +1,17 @@
 # Image-Based Waste Classification Assistant
 
 ## Project Goal
-This project aims to classify waste images into 6 categories:
-- cardboard
-- glass
-- metal
-- paper
+This project aims to classify waste images into 4 coarse categories by merging the original TrashNet classes:
+- paper (paper + cardboard)
 - plastic
+- glass_metal (glass + metal)
 - trash
 
 The goal is to build an image-based waste classification system using transfer learning and to analyze its performance on the TrashNet dataset.
 
 ## Dataset
 We use the TrashNet dataset for waste image classification.
+The raw TrashNet dataset contains 6 original labels, and this project merges them into a 4-class assistant-style dataset for Week 3.
 
 According to the project proposal, the main challenges of this task include:
 - high visual similarity between categories
@@ -26,7 +25,8 @@ According to the project proposal, the main challenges of this task include:
 IAI-Final-Project/
 ├── data/
 │   ├── raw/
-│   └── processed/
+│   ├── dataset_4class/
+│   └── processed_4class/
 ├── outputs/
 │   ├── figures/
 │   ├── logs/
@@ -36,7 +36,9 @@ IAI-Final-Project/
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── train_resnet_v2.py
-│   └── evaluate_resnet_v2.py
+│   ├── evaluate_resnet_v2.py
+│   ├── train_mobilenet_v2.py
+│   └── evaluate_mobilenet_v2.py
 ├── requirements.txt
 ├── README.md
 └── .gitignore
@@ -54,8 +56,9 @@ python scripts/check_and_split.py
 This step will:
 - check corrupted images
 - count images in each class
-- split data into train / val / test
-- save dataset statistics
+- merge the original 6 labels into 4 classes
+- split data into train / val / test on the new 4-class dataset
+- save dataset statistics and a fixed split file list
 - generate class distribution plot
 
 ---
@@ -175,3 +178,122 @@ Among all categories, paper and cardboard performed strongly, while glass remain
 
 ### Week 2 Summary
 Week 2 established a reportable formal ResNet18 baseline with complete evaluation metrics and confusion matrix analysis. The final selected model was trained with batch size 32 for 15 epochs and achieved the best overall performance among the current experiments.
+
+## Week 3
+
+### Week 3 Objective
+In Week 3, we changed the original 6-class TrashNet task into a 4-class assistant-style classification task and conducted a fair comparison between ResNet18 and MobileNetV2.
+
+The original labels were merged into:
+- paper = paper + cardboard
+- plastic
+- glass_metal = glass + metal
+- trash
+
+The goal of Week 3 was to evaluate whether a lighter model such as MobileNetV2 could achieve competitive performance under the same experimental setting.
+
+### Week 3 Data Preparation
+We first rebuilt the dataset into a 4-class version and created a fixed train/validation/test split.
+
+**4-class dataset statistics:**
+- paper: 997
+- plastic: 482
+- glass_metal: 911
+- trash: 137
+
+**4-class split statistics:**
+- paper: train 697 / val 149 / test 151
+- plastic: train 337 / val 72 / test 73
+- glass_metal: train 637 / val 136 / test 138
+- trash: train 95 / val 20 / test 22
+
+This step also verified that:
+- no corrupted images remained
+- no duplicate files were introduced
+- split totals matched expected class totals
+
+### Week 3 Experimental Setting
+To ensure a fair comparison, both models used:
+- the same 4-class dataset
+- the same fixed train / val / test split
+- the same image preprocessing
+- the same data augmentation
+- the same batch size: 32
+- the same epochs: 10
+- the same optimizer: Adam
+- the same learning rate: 1e-3
+- pretrained ImageNet weights
+- frozen backbone, with only the final classifier trained
+
+### Run Week 3 Scripts
+Build the 4-class dataset and split:
+```bash
+python scripts/check_and_split.py
+```
+
+### Train ResNet18
+```bash
+python scripts/train_resnet_v2.py
+```
+
+### Evaluate ResNet18
+```bash
+python scripts/evaluate_resnet_v2.py
+```
+
+### Train MobileNetV2:
+```bash
+python scripts/train_resnet_v2.py
+```
+
+### Evaluate MobileNetV2:
+```bash
+python scripts/evaluate_mobilenet_v2.py
+```
+
+### Week 3 Comparative Results
+### Week 3 Comparative Results
+
+| Model | Test Accuracy | Macro F1 | Training Time (s) | Model Size (MB) | Inference Time (ms/image) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| ResNet18 | 0.8750 | 0.8213 | 571.07 | 42.72 | 51.45 |
+| MobileNetV2 | 0.8880 | 0.8161 | 531.50 | 8.74 | 49.96 |
+
+### Week 3 Confusion Matrix Analysis
+
+Both models performed strongly on the larger classes, especially paper and glass_metal.
+
+For ResNet18:
+
+- paper achieved the best class-wise performance
+- trash remained the most difficult class
+- plastic was sometimes confused with glass_metal
+
+For MobileNetV2:
+
+- paper and glass_metal were also classified very well
+- plastic still showed confusion with glass_metal
+- trash performance was weaker than ResNet18
+
+This suggests that both models learned the major patterns well, but minority-class recognition remains challenging, especially for trash.
+
+### Key Findings
+
+Week 3 produced three main findings:
+
+1. MobileNetV2 achieved slightly higher overall test accuracy:
+    - MobileNetV2: 0.8880
+    - ResNet18: 0.8750
+2. ResNet18 achieved slightly better macro F1:
+    - ResNet18: 0.8213
+    - MobileNetV2: 0.8161
+3. MobileNetV2 was much more lightweight:
+    - significantly smaller model size
+    - slightly faster training
+    - slightly faster inference
+
+Therefore, MobileNetV2 appears more suitable for an assistant-style deployment scenario where efficiency is important, while ResNet18 provides slightly more balanced class-wise performance.
+
+### Week 3 Summary
+
+Week 3 shifted the project from the original 6-class setting to a more practical 4-class assistant-style waste classification task. Under the same experimental setup, MobileNetV2 achieved slightly higher accuracy, while ResNet18 achieved slightly better macro F1. Since MobileNetV2 is much smaller and slightly faster, it is currently the better candidate for lightweight assistant deployment.
