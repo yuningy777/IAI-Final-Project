@@ -1,0 +1,26 @@
+{
+    "experiment_name": "mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class",
+    "batch_size": 32,
+    "num_test_images": 384,
+    "class_names": [
+        "glass_metal",
+        "paper",
+        "plastic",
+        "trash"
+    ],
+    "class_to_idx": {
+        "glass_metal": 0,
+        "paper": 1,
+        "plastic": 2,
+        "trash": 3
+    },
+    "test_accuracy": 0.9427083333333334,
+    "test_precision_macro": 0.9595021120150188,
+    "test_recall_macro": 0.8823011192192824,
+    "test_f1_macro": 0.9128542349074341,
+    "model_path": "outputs/models/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_best.pth",
+    "confusion_matrix_path": "outputs/figures/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_confusion_matrix_eval.png",
+    "classification_report_path": "outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_classification_report.txt",
+    "top_errors_csv": "outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_top_errors.csv",
+    "top_errors_figure": "outputs/figures/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_top_errors.png"
+}

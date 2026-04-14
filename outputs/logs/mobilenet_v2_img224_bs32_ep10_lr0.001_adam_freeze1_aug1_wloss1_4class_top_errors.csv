@@ -1,0 +1,11 @@
+rank,image_path,true_label,pred_label,pred_confidence,true_class_probability
+1,data/processed_4class/test/trash/trash92.jpg,trash,paper,0.9906901121139526,0.007095733191817999
+2,data/processed_4class/test/trash/trash61.jpg,trash,paper,0.9877874255180359,0.010644647292792797
+3,data/processed_4class/test/paper/paper538.jpg,paper,trash,0.9548033475875854,0.026240618899464607
+4,data/processed_4class/test/plastic/plastic462.jpg,plastic,trash,0.9447821974754333,0.007391602732241154
+5,data/processed_4class/test/glass_metal/glass147.jpg,glass_metal,trash,0.8702279925346375,0.05247412994503975
+6,data/processed_4class/test/plastic/plastic190.jpg,plastic,glass_metal,0.8696708083152771,0.1119706854224205
+7,data/processed_4class/test/paper/paper587.jpg,paper,trash,0.8596733212471008,0.09223897755146027
+8,data/processed_4class/test/paper/cardboard172.jpg,paper,trash,0.8091809153556824,0.1126030758023262
+9,data/processed_4class/test/glass_metal/glass187.jpg,glass_metal,plastic,0.799984872341156,0.17340299487113953
+10,data/processed_4class/test/glass_metal/metal208.jpg,glass_metal,trash,0.7780249118804932,0.12313969433307648

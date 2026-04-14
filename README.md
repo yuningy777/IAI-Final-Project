@@ -226,51 +226,53 @@ To ensure a fair comparison, both models used:
 - frozen backbone, with only the final classifier trained
 
 ### Run Week 3 Scripts
+
 Build the 4-class dataset and split:
+
 ```bash
 python scripts/check_and_split.py
 ```
 
-### Train ResNet18
+Train ResNet18:
+
 ```bash
 python scripts/train_resnet_v2.py
 ```
 
-### Evaluate ResNet18
+Evaluate ResNet18:
+
 ```bash
 python scripts/evaluate_resnet_v2.py
 ```
 
-### Train MobileNetV2:
+Train MobileNetV2:
+
 ```bash
-python scripts/train_resnet_v2.py
+python scripts/train_mobilenet_v2.py
 ```
 
-### Evaluate MobileNetV2:
+Evaluate MobileNetV2:
+
 ```bash
 python scripts/evaluate_mobilenet_v2.py
 ```
 
 ### Week 3 Comparative Results
-### Week 3 Comparative Results
 
 | Model | Test Accuracy | Macro F1 | Training Time (s) | Model Size (MB) | Inference Time (ms/image) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
+| --- | --- | --- | --- | --- | --- |
 | ResNet18 | 0.8750 | 0.8213 | 571.07 | 42.72 | 51.45 |
 | MobileNetV2 | 0.8880 | 0.8161 | 531.50 | 8.74 | 49.96 |
 
 ### Week 3 Confusion Matrix Analysis
-
 Both models performed strongly on the larger classes, especially paper and glass_metal.
 
 For ResNet18:
-
 - paper achieved the best class-wise performance
 - trash remained the most difficult class
 - plastic was sometimes confused with glass_metal
 
 For MobileNetV2:
-
 - paper and glass_metal were also classified very well
 - plastic still showed confusion with glass_metal
 - trash performance was weaker than ResNet18
@@ -278,22 +280,201 @@ For MobileNetV2:
 This suggests that both models learned the major patterns well, but minority-class recognition remains challenging, especially for trash.
 
 ### Key Findings
-
 Week 3 produced three main findings:
 
 1. MobileNetV2 achieved slightly higher overall test accuracy:
-    - MobileNetV2: 0.8880
-    - ResNet18: 0.8750
+   - MobileNetV2: 0.8880
+   - ResNet18: 0.8750
+
 2. ResNet18 achieved slightly better macro F1:
-    - ResNet18: 0.8213
-    - MobileNetV2: 0.8161
+   - ResNet18: 0.8213
+   - MobileNetV2: 0.8161
+
 3. MobileNetV2 was much more lightweight:
-    - significantly smaller model size
-    - slightly faster training
-    - slightly faster inference
+   - significantly smaller model size
+   - slightly faster training
+   - slightly faster inference
 
 Therefore, MobileNetV2 appears more suitable for an assistant-style deployment scenario where efficiency is important, while ResNet18 provides slightly more balanced class-wise performance.
 
-### Week 3 Summary
+### Week 3 Output Files
+- `outputs/logs/dataset_stats_4class.csv`
+- `outputs/logs/split_stats_4class.csv`
+- `outputs/logs/split_files_4class.json`
+- `outputs/figures/class_distribution_4class.png`
+- `outputs/models/resnet18_bs32_ep10_lr0.001_adam_4class_best.pth`
+- `outputs/models/mobilenet_v2_bs32_ep10_lr0.001_adam_4class_best.pth`
+- `outputs/logs/resnet18_bs32_ep10_lr0.001_adam_4class_train_log.csv`
+- `outputs/logs/mobilenet_v2_bs32_ep10_lr0.001_adam_4class_train_log.csv`
+- `outputs/logs/experiment_results.csv`
+- `outputs/logs/resnet18_bs32_ep10_lr0.001_adam_4class_classification_report.txt`
+- `outputs/logs/mobilenet_v2_bs32_ep10_lr0.001_adam_4class_classification_report.txt`
+- `outputs/logs/resnet18_bs32_ep10_lr0.001_adam_4class_test_metrics.json`
+- `outputs/logs/mobilenet_v2_bs32_ep10_lr0.001_adam_4class_test_metrics.json`
+- `outputs/figures/resnet18_bs32_ep10_lr0.001_adam_4class_confusion_matrix.png`
+- `outputs/figures/mobilenet_v2_bs32_ep10_lr0.001_adam_4class_confusion_matrix.png`
 
+### Week 3 Summary
 Week 3 shifted the project from the original 6-class setting to a more practical 4-class assistant-style waste classification task. Under the same experimental setup, MobileNetV2 achieved slightly higher accuracy, while ResNet18 achieved slightly better macro F1. Since MobileNetV2 is much smaller and slightly faster, it is currently the better candidate for lightweight assistant deployment.
+---
+
+## Week 4
+
+### Week 4 Objective
+In Week 4, our goal was not simply to train another model, but to study which training strategies are more effective for 4-class waste classification.
+
+Based on the Week 3 comparison, we selected MobileNetV2 as the main model for improvement experiments because it achieved slightly higher overall accuracy while remaining lightweight and efficient.
+
+This week, we focused on three questions:
+- Does full fine-tuning work better than freezing the pretrained backbone?
+- Does weighted loss help with class imbalance?
+- What kinds of mistakes does the best model still make?
+
+### Week 4 Experimental Design
+We used MobileNetV2 as the common backbone and conducted the following experiments:
+
+- E0 (Baseline): freeze backbone + standard cross-entropy loss
+- E1: fine-tune all layers + standard cross-entropy loss
+- E2: freeze backbone + weighted cross-entropy loss
+- E3: fine-tune all layers + weighted cross-entropy loss
+
+All experiments used:
+- the same 4-class dataset
+- the same fixed train / val / test split
+- the same data augmentation
+- the same batch size: 32
+- the same image size: 224
+- the same optimizer: Adam
+- 10 epochs
+
+Learning rate setting:
+- 1e-3 for frozen-backbone experiments
+- 1e-4 for full fine-tuning experiments
+
+### Why Weighted Loss Was Tested
+The 4-class training set is clearly imbalanced:
+
+- glass_metal: 637
+- paper: 697
+- plastic: 337
+- trash: 95
+
+The trash class has far fewer samples than the other three classes, so weighted loss was tested as a possible way to improve minority-class recognition.
+
+### Run Week 4 Scripts
+
+#### E0: Baseline
+```bash
+python scripts/train_mobilenetv2_v3.py --freeze_backbone true --use_weighted_loss false --use_augmentation true --image_size 224 --epochs 10 --batch_size 32 --lr 0.001 --optimizer Adam
+python scripts/evaluate_mobilenetv2_v3.py --experiment_name mobilenet_v2_img224_bs32_ep10_lr0.001_adam_freeze1_aug1_wloss0_4class --image_size 224 --top_k 10
+```
+
+#### E1: Fine-tune All Layers
+```bash
+python scripts/train_mobilenetv2_v3.py --freeze_backbone false --use_weighted_loss false --use_augmentation true --image_size 224 --epochs 10 --batch_size 32 --lr 0.0001 --optimizer Adam
+python scripts/evaluate_mobilenetv2_v3.py --experiment_name mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class --image_size 224 --top_k 10
+```
+
+#### E2: Weighted Loss
+```bash
+python scripts/train_mobilenetv2_v3.py --freeze_backbone true --use_weighted_loss true --use_augmentation true --image_size 224 --epochs 10 --batch_size 32 --lr 0.001 --optimizer Adam
+python scripts/evaluate_mobilenetv2_v3.py --experiment_name mobilenet_v2_img224_bs32_ep10_lr0.001_adam_freeze1_aug1_wloss1_4class --image_size 224 --top_k 10
+```
+
+#### E3: Fine-tune + Weighted Loss
+```bash
+python scripts/train_mobilenetv2_v3.py --freeze_backbone false --use_weighted_loss true --use_augmentation true --image_size 224 --epochs 10 --batch_size 32 --lr 0.0001 --optimizer Adam
+python scripts/evaluate_mobilenetv2_v3.py --experiment_name mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss1_4class --image_size 224 --top_k 10
+```
+
+### Week 4 Comparative Results
+
+| Experiment | Setting | Test Accuracy | Macro Precision | Macro Recall | Macro F1 |
+| --- | --- | --- | --- | --- | --- |
+| E0 | freeze + CE | 0.8802 | 0.8275 | 0.7566 | 0.7812 |
+| E2 | freeze + weighted loss | 0.8542 | 0.7670 | 0.8131 | 0.7801 |
+| E1 | fine-tune + CE | **0.9427** | **0.9595** | 0.8823 | **0.9129** |
+| E3 | fine-tune + weighted loss | 0.9349 | 0.8765 | **0.8850** | 0.8797 |
+
+### Minority-Class Analysis
+The most difficult class throughout the experiments was still trash.
+
+Class-wise trash performance:
+
+| Experiment | Precision | Recall | F1 |
+| --- | --- | --- | --- |
+| E0 | 0.62 | 0.36 | 0.46 |
+| E2 | 0.39 | 0.68 | 0.50 |
+| E1 | **1.00** | 0.68 | **0.81** |
+| E3 | 0.64 | **0.73** | 0.68 |
+
+These results show that weighted loss improved trash recall, but often reduced precision. In contrast, full fine-tuning produced a much better balance and achieved the strongest trash F1.
+
+### Top-k Error Analysis
+We further analyzed the top-confidence mistakes made by the best model, E1.
+
+Among the top 10 most confident misclassified samples:
+- 6 were actually labeled as trash
+- many were predicted as paper or glass_metal
+
+Several consistent error patterns appeared:
+
+1. trash → paper  
+   Flat white foam-like objects were often classified as paper because they share similar visual cues such as light color, large flat surfaces, and simple texture.
+
+2. trash → glass_metal  
+   Small rigid objects, lids, or cup-like containers were often classified as glass_metal because the model relied strongly on material appearance and shape.
+
+3. plastic → paper  
+   Some plastic samples with printed labels or light-colored packaging were predicted as paper, suggesting that the model was influenced by packaging texture and visual layout.
+
+This shows that even the best model still makes systematic errors when categories are visually similar or semantically ambiguous.
+
+### Key Findings
+Week 4 produced four main findings:
+
+1. Full fine-tuning was the most effective strategy.  
+   Compared with the baseline E0, E1 improved test accuracy from 0.8802 to 0.9427 and improved macro F1 from 0.7812 to 0.9129.
+
+2. Weighted loss improved minority-class recall, but introduced more false positives.  
+   E2 increased macro recall and improved trash recall, but reduced overall accuracy and macro precision.
+
+3. Adding weighted loss on top of full fine-tuning did not outperform fine-tuning alone.  
+   E3 slightly increased macro recall, but reduced macro precision and macro F1 compared with E1.
+
+4. The trash class remains the most challenging category.  
+   Even under the best setting, many high-confidence mistakes were still concentrated in trash.
+
+### Final Week 4 Model
+Based on the week 4 experiments, the best overall configuration is:
+
+- Model: MobileNetV2
+- Full fine-tuning
+- Batch size: 32
+- Epochs: 10
+- Image size: 224
+- Learning rate: 1e-4
+- Optimizer: Adam
+- Standard data augmentation
+- No weighted loss
+
+Final Test Performance:
+- Test Accuracy: 0.9427
+- Test Precision (macro): 0.9595
+- Test Recall (macro): 0.8823
+- Test F1 Score (macro): 0.9129
+
+### Week 4 Output Files
+- outputs/logs/experiment_results_week4.csv
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.001_adam_freeze1_aug1_wloss0_4class_train_log.csv
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.001_adam_freeze1_aug1_wloss1_4class_train_log.csv
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_train_log.csv
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss1_4class_train_log.csv
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_classification_report.txt
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_test_metrics.json
+- outputs/logs/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_top_errors.csv
+- outputs/figures/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_confusion_matrix_eval.png
+- outputs/figures/mobilenet_v2_img224_bs32_ep10_lr0.0001_adam_freeze0_aug1_wloss0_4class_top_errors.png
+
+### Week 4 Summary
+Week 4 moved the project beyond simple model comparison and toward understanding which training strategies actually improve performance. The experiments show that full fine-tuning is the most effective method for this 4-class waste classification task, while weighted loss mainly improves minority-class recall at the cost of lower precision and overall stability. The best final model is MobileNetV2 with full fine-tuning and standard augmentation, which achieved the strongest overall result among all current experiments.
