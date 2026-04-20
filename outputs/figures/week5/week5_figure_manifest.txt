@@ -1,0 +1,10 @@
+Week 5 figure outputs
+Root: C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5
+
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_week3_resnet_vs_mobilenet.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_week4_ablation_overview.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_freeze_vs_finetune_ce.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_weighted_loss_effect.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_train_class_counts.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_final_model_per_class_f1.png
+C:/Users/xinyu/Desktop/IAI/IAI-Final-Project/outputs/figures/week5/week5_e1_train_val_curves.png

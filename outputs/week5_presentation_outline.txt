@@ -1,0 +1,32 @@
+Week 5 - presentation outline (text draft, no slide file)
+
+1) Problem and dataset
+- Goal: 4-class assistant-style waste classification on TrashNet (paper, plastic, glass_metal, trash).
+- Main difficulties: visually similar categories, lighting/background variation, imbalance (especially trash).
+
+2) Pipeline and reproducibility
+- Fixed preprocessing + split recorded under outputs/logs/week3-logs-mobilenetVSresnet/.
+- Training/evaluation scripts live in scripts/ with logged CSV/JSON metrics.
+
+3) Week 3 - model comparison (frozen backbone)
+- ResNet18 vs MobileNetV2 under the same budget.
+- Figure: outputs/figures/week5/week5_week3_resnet_vs_mobilenet.png
+
+4) Week 4 - improvements and ablations
+- Questions: fine-tuning vs frozen backbone; class-weighted loss vs standard CE; error patterns.
+- Figure: outputs/figures/week5/week5_week4_ablation_overview.png
+
+5) Week 5 - freeze experiment (final emphasis)
+- Compare E0 (frozen + CE) vs E1 (full fine-tune + CE): largest accuracy/F1 gain comes from unfreezing.
+- Figure: outputs/figures/week5/week5_freeze_vs_finetune_ce.png
+- Weighted CE mainly trades precision for recall; best overall remains E1.
+- Figure: outputs/figures/week5/week5_weighted_loss_effect.png
+
+6) Final model and remaining errors
+- Best setting: MobileNetV2, full fine-tune, lr=1e-4, standard augmentation, CE (E1).
+- Per-class F1 figure: outputs/figures/week5/week5_final_model_per_class_f1.png
+- qualitative top-confidence errors: see outputs/logs/..._top_errors.csv and ..._top_errors.png (E1)
+
+7) Optional demo (live inference)
+- Command: python scripts/demo_predict.py --image <path-to-image>
+- Requires the E1 checkpoint under outputs/models/.

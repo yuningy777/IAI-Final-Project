@@ -23,25 +23,31 @@ According to the project proposal, the main challenges of this task include:
 ## Project Structure
 ```text
 IAI-Final-Project/
-├── data/
-│   ├── raw/
-│   ├── dataset_4class/
-│   └── processed_4class/
-├── outputs/
-│   ├── figures/
-│   ├── logs/
-│   └── models/
-├── scripts/
-│   ├── check_and_split.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── train_resnet_v2.py
-│   ├── evaluate_resnet_v2.py
-│   ├── train_mobilenet_v2.py
-│   └── evaluate_mobilenet_v2.py
-├── requirements.txt
-├── README.md
-└── .gitignore
+  data/
+    raw/
+    dataset_4class/
+    processed_4class/
+  demo/
+    app.py
+    inference.py
+    sample_images/
+  outputs/
+    figures/
+    logs/
+    models/
+  scripts/
+    check_and_split.py
+    train_resnet_v2.py
+    evaluate_resnet_v2.py
+    train_mobilenetv2_v3.py
+    evaluate_mobilenetv2_v3.py
+    predict.py
+    ...
+  utils/
+    transforms.py
+  requirements.txt
+  README.md
+  .gitignore
 ```
 
 ## Environment
@@ -162,9 +168,9 @@ This suggests that the main contribution of Week 2 is not only a small performan
 
 ### Confusion Matrix Analysis
 The confusion matrix shows several clear misclassification patterns:
-- glass ↔ metal
-- glass ↔ plastic
-- cardboard ↔ paper
+- glass <-> metal
+- glass <-> plastic
+- cardboard <-> paper
 
 Among all categories, paper and cardboard performed strongly, while glass remained one of the most difficult classes. This is likely because glass objects often share similar shape and reflection patterns with metal and plastic containers. These findings are consistent with the project proposal, which highlighted visual similarity, lighting variation, and ambiguous category boundaries as major challenges.
 
@@ -419,13 +425,13 @@ Among the top 10 most confident misclassified samples:
 
 Several consistent error patterns appeared:
 
-1. trash → paper  
+1. trash -> paper  
    Flat white foam-like objects were often classified as paper because they share similar visual cues such as light color, large flat surfaces, and simple texture.
 
-2. trash → glass_metal  
+2. trash -> glass_metal  
    Small rigid objects, lids, or cup-like containers were often classified as glass_metal because the model relied strongly on material appearance and shape.
 
-3. plastic → paper  
+3. plastic -> paper  
    Some plastic samples with printed labels or light-colored packaging were predicted as paper, suggesting that the model was influenced by packaging texture and visual layout.
 
 This shows that even the best model still makes systematic errors when categories are visually similar or semantically ambiguous.
@@ -478,3 +484,64 @@ Final Test Performance:
 
 ### Week 4 Summary
 Week 4 moved the project beyond simple model comparison and toward understanding which training strategies actually improve performance. The experiments show that full fine-tuning is the most effective method for this 4-class waste classification task, while weighted loss mainly improves minority-class recall at the cost of lower precision and overall stability. The best final model is MobileNetV2 with full fine-tuning and standard augmentation, which achieved the strongest overall result among all current experiments.
+
+---
+
+## Week 5
+
+### Week 5 Objective
+Week 5 focuses on locking the experimental story for the final presentation: clearly summarizing the frozen-backbone baseline versus full fine-tuning, exporting a consolidated figure set, and providing an optional inference demo. Slide files are intentionally out of scope for the repository; use the text outline and figures as the non-slide deliverables.
+
+### Freeze Experiment (Narrative Lock)
+The key Week 5 "freeze experiment" conclusion is already supported by the Week 4 E0 versus E1 comparison under standard cross-entropy:
+- E0 freezes pretrained features and only trains the classifier head (lr = 1e-3).
+- E1 unfreezes all layers and fine-tunes end-to-end (lr = 1e-4).
+
+This comparison isolates the effect of unfreezing the backbone from the weighted-loss ablations.
+
+### Regenerate Week 5 Figures (no training required)
+This script reads existing CSV/JSON logs and writes presentation-ready charts to `outputs/figures/week5/`:
+
+```bash
+python scripts/week5_generate_figures.py
+```
+
+### Optional Demo (single image inference)
+Requires a trained checkpoint file (for example the Week 4 E1 best weights path used in the logs):
+
+```bash
+python scripts/predict.py --image path/to/your_image.jpg
+python scripts/predict.py --image path/to/your_image.jpg --json
+python scripts/demo_predict.py --image path/to/your_image.jpg
+```
+
+### Gradio web demo (presentation)
+Install Gradio, ensure the default checkpoint exists under `outputs/models/`, then start the local UI from the **project root**:
+
+```bash
+pip install gradio
+python demo/app.py
+```
+
+Open the printed URL (typically `http://127.0.0.1:7860`). Optional: `python demo/app.py --server_port 7861` or `--checkpoint path/to/custom.pth`.
+
+Place a few rehearsal images under `demo/sample_images/` (see `demo/sample_images/README.txt`).
+
+### Week 5 Output Files
+- `outputs/figures/week5/week5_week3_resnet_vs_mobilenet.png`
+- `outputs/figures/week5/week5_week4_ablation_overview.png`
+- `outputs/figures/week5/week5_freeze_vs_finetune_ce.png`
+- `outputs/figures/week5/week5_weighted_loss_effect.png`
+- `outputs/figures/week5/week5_train_class_counts.png`
+- `outputs/figures/week5/week5_final_model_per_class_f1.png`
+- `outputs/figures/week5/week5_e1_train_val_curves.png`
+- `outputs/figures/week5/week5_figure_manifest.txt`
+- `outputs/week5_presentation_outline.txt`
+- `scripts/week5_generate_figures.py`
+- `scripts/demo_predict.py`
+- `scripts/predict.py`
+- `demo/app.py`, `demo/inference.py`, `demo/sample_images/README.txt`
+- `utils/transforms.py`
+
+### Week 5 Summary
+Week 5 packages the project for reporting: the freeze-versus-fine-tuning result is highlighted as the primary training decision, all major quantitative comparisons are exported as a single figure bundle, and a small CLI demo supports an optional live inference segment without introducing slide artifacts into the repo.
